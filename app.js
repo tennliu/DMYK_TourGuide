@@ -48,7 +48,25 @@ const shareBtn = document.getElementById('shareBtn');
 const languageBtn = document.getElementById('languageBtn');
 const closeBtn = document.getElementById('closeBtn');
 const sideBtn = document.getElementById('sideBtn');
+const languageBg = document.getElementById('languageBg');
+const decoIcon = document.getElementById('decoIcon');
 let currentLang = 'zh';
+
+async function hydrateWrappedRaster(img, url) {
+  if (!img) return;
+  try {
+    const response = await fetch(url, {cache:'force-cache'});
+    const svgText = await response.text();
+    const match = svgText.match(/href=[\"'](data:image\/(?:webp|png|jpeg);base64,[^\"']+)[\"']/i);
+    if (match) img.src = match[1];
+    else img.src = url;
+  } catch (_) {
+    img.src = url;
+  }
+}
+
+hydrateWrappedRaster(languageBg, 'assets/Language_BG.svg?v=15');
+hydrateWrappedRaster(decoIcon, 'assets/Deco_Icon.svg?v=15');
 
 function applyOverlayCopy(lang) {
   const c = COPY[lang] || COPY.en;
