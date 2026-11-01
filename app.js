@@ -52,6 +52,8 @@ const languageBg = document.getElementById('languageBg');
 const decoIcon = document.getElementById('decoIcon');
 let currentLang = 'zh';
 
+window.DMYKMetrics?.track('page_view', 'all');
+
 async function hydrateWrappedRaster(img, url) {
   if (!img) return;
   try {
@@ -147,10 +149,14 @@ overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(
 shareBtn.addEventListener('click', async () => {
   const url = `${location.origin}${location.pathname}`;
   const data = {title:'Dongmen YongKang Guide', text:'Dongmen YongKang District Touring Guide', url};
+  window.DMYKMetrics?.track('share_click', currentLang);
   try {
-    if (navigator.share) await navigator.share(data);
-    else if (navigator.clipboard) {
+    if (navigator.share) {
+      await navigator.share(data);
+      window.DMYKMetrics?.track('share_complete', currentLang);
+    } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
+      window.DMYKMetrics?.track('share_complete', currentLang);
       shareBtn.textContent = currentLang === 'zh' ? '連結已複製' : 'Link copied';
       setTimeout(() => applyOverlayCopy(currentLang), 1200);
     }
