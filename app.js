@@ -150,13 +150,16 @@ shareBtn.addEventListener('click', async () => {
   const url = `${location.origin}${location.pathname}`;
   const data = {title:'Dongmen YongKang Guide', text:'Dongmen YongKang District Touring Guide', url};
   window.DMYKMetrics?.track('share_click', currentLang);
+  window.DMYKMetrics?.track('share_click', 'all');
   try {
     if (navigator.share) {
       await navigator.share(data);
       window.DMYKMetrics?.track('share_complete', currentLang);
+      window.DMYKMetrics?.track('share_complete', 'all');
     } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
       window.DMYKMetrics?.track('share_complete', currentLang);
+      window.DMYKMetrics?.track('share_complete', 'all');
       shareBtn.textContent = currentLang === 'zh' ? '連結已複製' : 'Link copied';
       setTimeout(() => applyOverlayCopy(currentLang), 1200);
     }
