@@ -128,7 +128,16 @@ if (window.visualViewport) {
 }
 
 document.querySelectorAll('.lang-btn').forEach(btn => {
-  btn.addEventListener('click', () => openMap(btn.dataset.lang));
+  btn.addEventListener('click', () => {
+    window.DMYKMetrics?.track('language_select', btn.dataset.lang);
+    openMap(btn.dataset.lang);
+  });
+});
+
+mapFrame.addEventListener('load', () => {
+  if (mapFrame.getAttribute('src')) {
+    window.DMYKMetrics?.track('map_open', currentLang);
+  }
 });
 sideBtn.addEventListener('click', openOverlay);
 closeBtn.addEventListener('click', closeOverlay);
