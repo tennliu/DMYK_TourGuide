@@ -1,0 +1,89 @@
+name: Build DMYK offline backup 2026-11-20
+
+on:
+  push:
+    branches:
+      - backup/dmyk-tourguide-2026-11-20
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/backup-dmyk-2026-11-20.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read complete repository snapshots
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build offline source and assets package
+        shell: bash
+        run: |
+          set -euo pipefail
+          LIVE_SHA=c75551a1599549006ceb533d3ab3942962a0fd9e
+          GA4_SHA=25e95f8a42fe314db70de1d9977a23f693b56e10
+          git cat-file -e "${LIVE_SHA}^{commit}"
+          git cat-file -e "${GA4_SHA}^{commit}"
+          mkdir -p offline/01_LIVE_GitHub_Pages offline/02_GA4_Validated_Preview
+          git archive --format=tar "$LIVE_SHA" | tar -xf - -C offline/01_LIVE_GitHub_Pages
+          git archive --format=tar "$GA4_SHA" | tar -xf - -C offline/02_GA4_Validated_Preview
+          test -f offline/01_LIVE_GitHub_Pages/index.html
+          test -f offline/02_GA4_Validated_Preview/index.html
+          test -f offline/01_LIVE_GitHub_Pages/assets/Language_Header.svg
+          test -f offline/02_GA4_Validated_Preview/assets/Language_Header.svg
+          test -f offline/01_LIVE_GitHub_Pages/metrics.js
+          test -f offline/02_GA4_Validated_Preview/metrics.js
+          cat > offline/README_BACKUP.txt <<'EOF'
+          DMYK TourGuide offline backup - 2026-11-20
+          ==========================================
+          Source repository: tennliu/DMYK_TourGuide
+          Content is the complete tracked source and asset tree at two exact commits.
+
+          01_LIVE_GitHub_Pages/
+          Commit: c75551a1599549006ceb533d3ab3942962a0fd9e
+          The LIVE GitHub Pages version when the backup was prepared.
+          Uses existing CounterAPI. This is the rollback/source-of-truth snapshot.
+          URL: https://tennliu.github.io/DMYK_TourGuide/?v=18
+
+          02_GA4_Validated_Preview/
+          Commit: 25e95f8a42fe314db70de1d9977a23f693b56e10
+          GA4 integration branch, validated with Tag Assistant screenshots.
+          GA4 tag ID: GTM-5K542JSS
+          GA4 measurement ID: G-EF6HEKVW9T
+          Sends language_select, map_open, share_click, share_complete, plus
+          automatically collected page_view.
+          Parameters: district_id, selected_language.
+          CounterAPI removed in this CANDIDATE branch.
+          This version was NOT live on GitHub Pages when archived.
+
+          Restore:
+          Upload the desired folder contents to the root of the intended
+          hosting project, retaining every relative asset path.
+          Do not mix files from the two snapshots.
+          Google My Maps embeds, Google Analytics, and external services
+          require connectivity and will not work fully offline.
+          For GitHub Pages rollback, restore LIVE files through reviewed
+          commits/deployment procedures, not by overwriting unreviewed main.
+
+          QR parameter ?v=18 is not a separate folder and is unaffected.
+
+          SHA256SUMS.txt contains per-file hashes for local integrity checks.
+          EOF
+          (cd offline && find 01_LIVE_GitHub_Pages 02_GA4_Validated_Preview -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          echo "LIVE files: $(find offline/01_LIVE_GitHub_Pages -type f | wc -l)"
+          echo "GA4 files: $(find offline/02_GA4_Validated_Preview -type f | wc -l)"
+      - name: Save downloadable offline ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: DMYK_TourGuide_Offline_Backup_2026-11-20
+          path: offline/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 6
