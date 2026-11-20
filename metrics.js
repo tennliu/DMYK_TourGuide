@@ -18,7 +18,7 @@
       if (typeof window.gtag === 'function') {
         window.gtag('event', action, {
           district_id: 'DMYK',
-          language: lang
+          selected_language: lang
         });
       }
     } catch (_) {
