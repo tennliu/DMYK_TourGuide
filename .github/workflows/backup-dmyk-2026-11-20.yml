@@ -86,4 +86,5 @@ jobs:
           path: offline/
           if-no-files-found: error
           retention-days: 90
+          include-hidden-files: true
           compression-level: 6
