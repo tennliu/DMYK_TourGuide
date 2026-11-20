@@ -15,8 +15,33 @@
     return year && month ? `${year}-${month}` : 'unknown-month';
   }
 
+  const GA4_EVENTS = new Set([
+    'language_select',
+    'map_open',
+    'share_click',
+    'share_complete'
+  ]);
+
+  function trackGoogleAnalytics(action, lang) {
+    // GA4 automatically collects page_view; do not send the CounterAPI
+    // 'all' share aggregate again, or sharing would be double-counted.
+    if (action === 'page_view' || lang === 'all' || !GA4_EVENTS.has(action)) return;
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', action, {
+          district_id: 'DMYK',
+          language: lang
+        });
+      }
+    } catch (_) {
+      // Analytics must never interrupt the existing guide or CounterAPI.
+    }
+  }
+
   function track(action, lang) {
     if (!action || !lang) return;
+
+    trackGoogleAnalytics(action, lang);
 
     const key = `${APP_KEY}-${taipeiMonthKey()}-${lang}`;
     const url = `${ENDPOINT}/${encodeURIComponent(NAMESPACE)}/${encodeURIComponent(action)}/${encodeURIComponent(key)}?trackOnly=true`;
