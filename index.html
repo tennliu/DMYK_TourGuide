@@ -2,7 +2,10 @@
 <html lang="zh-Hant">
 <head>
   <!-- DMYK GA4: Google tag provided in Analytics > Web data stream.
-       Do not add a second GA4 config/page_view; the tag handles page views. -->
+       Do not add a second GA4 config/page_view; the tag handles page views.
+       GA4 automatically reads UTM parameters from the original landing URL.
+       Keep ?v=18 working for printed QR; NFC adds utm_source/medium/campaign.
+       Do not rewrite the landing URL or generate a duplicate entry event. -->
   <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5K542JSS"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
