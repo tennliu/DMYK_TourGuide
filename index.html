@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+  <!-- DMYK GA4: Google tag provided in Analytics > Web data stream.
+       Do not add a second GA4 config/page_view; the tag handles page views.
+       GA4 automatically reads UTM parameters from the original landing URL.
+       Keep ?v=18 working for printed QR; NFC adds utm_source/medium/campaign.
+       Do not rewrite the landing URL or generate a duplicate entry event. -->
+  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-5K542JSS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#910000">
@@ -50,7 +61,7 @@
     </div>
   </div>
 
-  <script src="metrics.js?v=1"></script>
+  <script src="metrics.js?v=2"></script>
   <script src="app.js?v=19"></script>
 </body>
 </html>
