@@ -8,10 +8,12 @@
   const hasCampaignTag = ['utm_medium', 'utm_source', 'utm_campaign', 'utm_content'].some(
     key => url.searchParams.has(key)
   );
-  const entryPoint = medium === 'qr' ? 'qr' : medium === 'nfc' ? 'nfc'
-    : hasCampaignTag ? 'other' : 'unknown';
-  // The printed QR URL ?v=18 was also used by earlier NFC samples.
-  // It must NOT be automatically classified as a QR entrance.
+  // Explicit UTM always takes precedence over the legacy print-run marker.
+  // The already-printed ?v=18 URL is now intentionally attributed to QR.
+  // This is an attribution convention, not proof of a physical scan.
+  const entryPoint = medium === 'nfc' ? 'nfc' : medium === 'qr' ? 'qr'
+    : hasCampaignTag ? 'other'
+    : url.searchParams.get('v') === '18' ? 'qr' : 'unknown';
   const rawLanguage = String(navigator.languages?.[0] || navigator.language || '').toLowerCase();
   const browserLanguageGroup = /^zh(?:-|$)/.test(rawLanguage) ? 'zh'
     : /^en(?:-|$)/.test(rawLanguage) ? 'en' : 'other';

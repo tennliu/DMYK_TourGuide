@@ -17,8 +17,9 @@
 
 ## Classification and limitations
 - `onsite / nfc` is **identified NFC entry** when GA4 receives a session originating from the tagged URL.
-- `entry_point=qr` when `utm_medium=qr`; `entry_point=nfc` when `utm_medium=nfc`; other UTM values are `other`; untagged entries are `unknown`.
-- `?v=18` by itself is a **legacy untagged entry**, *not confirmed QR*. This URL has been used by printed QR, test NFC, and potentially direct/share traffic.
+- `entry_point=qr` when `utm_medium=qr` **or** when the untagged landing URL has `v=18` (legacy printed QR); `entry_point=nfc` when `utm_medium=nfc`; other UTM values are `other`; otherwise `unknown`.
+- Explicit UTM tagging takes priority over `v=18`, so the NFC testing URL with both `v=18` and `utm_medium=nfc` is `nfc`, not `qr`.
+- The `v=18` classification is an **agreed attribution convention**, not confirmed physical scanning; legacy NFC experiments, bookmarked links and forwarded URLs using `v=18` will also be grouped with QR.
 - NFC tap counts and physical QR scans cannot be measured directly by GA4; it measures qualifying site visits.
 - A tagged URL can be copied, forwarded, or manually opened, so the source is **declared by the URL**, not verified by the physical medium.
 - In the GA4 reports, look for **Session manual source / medium** (not the browser language or the first-user source). Labels are case-sensitive.
@@ -31,7 +32,7 @@
 2. Confirm the guide looks and behaves as usual, including all seven language buttons, map iframe and share.
 3. In Google Tag Assistant, verify `page_view`'s `page_location` retains `utm_source=onsite&utm_medium=nfc&utm_campaign=dmyk_tourguide`; verify `experience_visit` with `experience_id=dmyk_tourguide` and `entry_point=nfc`.
 4. In GA4 Realtime / DebugView, verify `experience_visit`, `map_open`, `share_click`, and `share_complete` when triggered. `experience_first_visit` should appear **only** once per browser/experience. Allow report processing before judging source attribution.
-5. Test the legacy `?v=18` printed QR URL separately. It should work and should **not** be labeled `onsite/nfc` solely because it contains `v=18`.
+5. Test the legacy `?v=18` printed QR URL separately; it must remain functional and send `entry_point=qr` to GA4. This is a custom event parameter, not a native UTM conversion.
 6. Compare GA4 **Traffic acquisition → Session manual source / medium** after processing; expect `onsite / nfc` for tagged NFC sessions.
 7. Test in a fresh browsing session (or private mode) to prevent a pre-existing session from hiding the attribution distinction.
 
