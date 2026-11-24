@@ -1,29 +1,55 @@
 (function () {
-  // GA4-only event bridge for the existing TourGuide UI.
-  // Keep the window.DMYKMetrics interface so app.js remains unchanged.
-  const GA4_EVENTS = new Set([
-    'language_select',
-    'map_open',
-    'share_click',
-    'share_complete'
-  ]);
+  'use strict';
+  // GoMaps Analytics v2; original DMYKMetrics.track API remains unchanged.
+  const districtId = 'DMYK';
+  const experienceId = 'dmyk_tourguide';
+  const url = new URL(window.location.href);
+  const medium = (url.searchParams.get('utm_medium') || '').trim().toLowerCase();
+  const hasCampaignTag = ['utm_medium', 'utm_source', 'utm_campaign', 'utm_content'].some(
+    key => url.searchParams.has(key)
+  );
+  const entryPoint = medium === 'qr' ? 'qr' : medium === 'nfc' ? 'nfc'
+    : hasCampaignTag ? 'other' : 'unknown';
+  // The printed QR URL ?v=18 was also used by earlier NFC samples.
+  // It must NOT be automatically classified as a QR entrance.
+  const rawLanguage = String(navigator.languages?.[0] || navigator.language || '').toLowerCase();
+  const browserLanguageGroup = /^zh(?:-|$)/.test(rawLanguage) ? 'zh'
+    : /^en(?:-|$)/.test(rawLanguage) ? 'en' : 'other';
+
+  function emit(name, extras) {
+    try {
+      if (typeof window.gtag !== 'function') return;
+      window.gtag('event', name, Object.assign({
+        district_id: districtId,
+        experience_id: experienceId,
+        entry_point: entryPoint,
+        browser_language_group: browserLanguageGroup
+      }, extras || {}));
+    } catch (_) {
+      // Never interrupt the guide if analytics is unavailable.
+    }
+  }
+
+  // The Google tag itself sends page_view. This separate business event
+  // measures each entrance to the TourGuide as one visit.
+  emit('experience_visit');
+  try {
+    const key = 'gomaps:v2:seen:' + experienceId;
+    if (!window.localStorage.getItem(key)) {
+      emit('experience_first_visit');
+      window.localStorage.setItem(key, '1');
+    }
+  } catch (_) {
+    // Do not repeatedly mark visitors as new when storage is blocked.
+  }
 
   function track(action, lang) {
-    // The Google tag collects page_view automatically.
-    // Existing 'all' share calls were CounterAPI aggregates;
-    // GA4 should receive only one event per actual interaction.
-    if (!GA4_EVENTS.has(action) || !lang || lang === 'all') return;
-
-    try {
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', action, {
-          district_id: 'DMYK',
-          selected_language: lang
-        });
-      }
-    } catch (_) {
-      // Tracking failures must not affect the guide.
-    }
+    // Old 'all' aggregates were CounterAPI-only. Ignore to avoid duplicates.
+    // Language usage is based on the map_open event when its iframe loads.
+    // The historic language_select event is not sent by v2.
+    if (!['map_open', 'share_click', 'share_complete'].includes(action)) return;
+    if (!lang || lang === 'all') return;
+    emit(action, { selected_language: lang });
   }
 
   window.DMYKMetrics = Object.freeze({ track });
